@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+/*.node {
+  stroke-width: 4px;
+}*/
+
+</style>
+<body>
+
+<div id="animated"> </div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 1200,
+    height = 800;
+
+// var fill = d3.scale.category10();
+var fills = {
+  'cancer+positive': '#33A5FF',
+  'cancer+negative': '#909497',
+  'nocancer+positive': '#33A5FF',
+  'nocancer+negative': '#909497',
+}
+
+var borders = {
+  'cancer+positive': '#FF0000',
+  'cancer+negative': '#FF0000',
+  'nocancer+positive': '#909497',
+  'nocancer+negative': '#909497',
+}
+
+var parameter = []; //it says which check boxes are clicked
+
+function createDataSet() {
+  console.log("made dataset")
+  var nodes = [];
+  var total = 100;
+  var cancerNeg = 2;
+  var cancerPos = 8;
+  var cancer = cancerNeg + cancerPos;
+  var nocancerPos = 20;
+  var nocancerNeg = total - cancerNeg - cancerPos - nocancerPos;
+  var positive = cancer + nocancerPos;
+  var type = '';
+  for (var i = 0; i < total; i++) {
+    if (i < cancerNeg) {
+      type = 'cancer+negative';
+    }
+    else if (i < cancer) {
+      type = 'cancer+positive';
+    }
+    else if (i < positive) {
+      type = 'nocancer+positive';
+    }
+    else {
+       type = 'nocancer+negative';
+    }
+      x = Math.random,
+      y = Math.random,
+      nodes.push({
+        'x': x,
+        'y': y,
+        'type' : type
+      })
+    }
+
+  // console.log("assigned nodes" + nodes);
+  return nodes;
+}
+
+
+  //number in range parenthesis determine number of points
+  // return {index: i};
+  // dataSetVariation('cancer+negative', 'cancer+positive', 'nocancer+positive', 'nocancer+negative', dataset);
+  // return nodes
+
+
+
+
+  var nodes = createDataSet();
+  var force = d3.layout.force()
+    .nodes(nodes)
+    .size([width, height])
+    .on("tick", tick)
+    .start();
+
+
+var svg = d3.select("#animated").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+
+var node = svg.selectAll(".node")
+    .data(nodes)
+  .enter().append("circle")
+    .attr("class", "node")
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", 8)
+    .attr("stroke-width", 4)
+
+    .attr("fill", function(d) {
+      return fills[d.type];
+    })
+    .attr("stroke", function(d) {
+      return borders[d.type];
+    })
+
+    // .style("fill", function(d, i) { return fill(i & 7); })
+    // //number indicates number of different colors
+    // .style("stroke", function(d, i) { return d3.rgb(fill(i & 7)).darker(2); })
+    .call(force.drag)
+    //.on("mousedown", function() { d3.event.stopPropagation(); });
+
+svg.style("opacity", 1e-6)
+  .transition()
+    .duration(1000)
+    .style("opacity", 1);
+
+
+
+
+function tick(e) {
+
+  // Push different nodes in different directions for clustering.
+
+  // console.log("tick");
+  var k = 12 * e.alpha;
+  //the number 12 indicates distance between groupings
+
+  if (parameter.includes('cancer')){
+    if (parameter.includes('positive')) {
+      nodes.forEach(function(o, i) {
+        if (o.type == 'cancer+negative') {
+          o.x +=  2*k;
+        }
+        else if (o.type == 'cancer+positive') {
+          o.x += 4*k;
+        }
+        else if (o.type == 'nocancer+positive') {
+          o.x += -2*k;
+
+        }
+        else {
+          o.x = o.x;
+        }
+      });
+
+    }
+    else {
+      nodes.forEach(function(o, i) {
+      if (o.type == 'cancer+negative') {
+        o.x +=  2*k;
+      }
+      else if (o.type == 'cancer+positive') {
+        o.x += 2*k;
+      }
+      else {
+        o.x = o.x;
+      }
+    });
+  }
+}
+  else if(parameter.includes('positive')) {
+    nodes.forEach(function(o, i) {
+      if (o.type == 'cancer+positive') {
+        o.x +=  -2*k;
+      }
+      else if (o.type == 'nocancer+positive') {
+        o.x += -2*k;
+      }
+      else {
+        o.x = o.x;
+      }
+    });
+  }
+else {
+  nodes.forEach(function(o, i) {
+
+    o.x = o.x;
+  });
+}
+
+  node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+}
+
+// function moveIconsAndDelete(parameter) {
+//   force.resume;
+//   for (z = 0; z < parameter.length; z++) {
+//     parameter.pop();
+//   }
+//   console.log("deleted parameter? " + parameter);
+// }
+function checkboxClicked() {
+  // checked_values is an array containing 'cancer' and/or 'positive'
+
+   var boxes = document.getElementsByClassName("checkbox");
+   console.log(boxes);
+
+   if (document.getElementById('chbx-positive').checked){
+    if (parameter.includes("positive")) {
+ 		  console.log("positive still applied")
+   }
+	   else{
+    	  parameter.push("positive");
+	   }
+
+  } else{
+
+    if (parameter.includes("positive")){
+      parameter.pop("positive");
+	  console.log("positive is removed")
+    }
+  }
+	   
+
+   if (document.getElementById('chbx-cancer').checked){
+	    if (parameter.includes("cancer")) {
+  		  console.log("cancer still applied")
+	   }
+ 	   else{
+     	  parameter.push("cancer");
+ 	   }
+
+   } else{
+
+     if (parameter.includes("cancer")){
+       parameter.pop("cancer");
+     }
+   }
+
+console.log("parameter: " + parameter);
+
+  // for (w = 0; w < 1; w ++) {
+  //   for (i = 0; i < boxes.length; i++) {
+  //       console.log("i" + i);
+  //       if (boxes[i].checked == true) {
+  //       parameter.push(boxes[i]['id']);
+  //     }
+  //   }
+    //force.tick();
+   force.resume();
+  // moveIconsAndDelete(parameter);
+    // console.log(w);
+
+
+    // parameter = clearParameter(parameter);
+
+
+ }
+
+ // function clearParameter(parameter) {
+ //   for (z = 0; z < parameter.length; z++) {
+ //       parameter.pop();
+ //       }
+ //   console.log("parameter after removal " + parameter);
+ //   return parameter;
+ // }
+</script>
+<div style = "position: absolute; top: 80px; left: 1200px; width: 200px; height: 1000px">
+
+Have cancer: <input type="checkbox" id="chbx-cancer" class="checkbox" onclick="checkboxClicked()">
+
+<p id="text" style="display:none">10 out of every 1,000 women age age forty who participate in routine screening
+  have breast cancer.</p>
+Tested positive: <input type="checkbox" id="chbx-positive" class="checkbox" onclick="checkboxClicked()">
+<p id="text2" style="display:none">8 of every 10 women with breast cancer will get a positive mammography. 95 out of
+  every 990 women without breast cancer will also get a positive mammography</p>
+
+</body>
+</html>
